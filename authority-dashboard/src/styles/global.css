@@ -1,0 +1,171 @@
+:root {
+  --navy: #123B5D;
+  --navy-dark: #0A2540;
+  --navy-darker: #071A2D;
+  --navy-light: #1B4D79;
+  --saffron: #F47C20;
+  --saffron-light: #FF9447;
+  --saffron-glow: rgba(244, 124, 32, 0.2);
+  --gold: #F4B942;
+  --cream: #FFF9F0;
+  
+  --status-green: #16A34A;
+  --status-green-bg: #DCFCE7;
+  --status-green-text: #15803D;
+
+  --status-amber: #F59E0B;
+  --status-amber-bg: #FEF3C7;
+  --status-amber-text: #B45309;
+
+  --status-red: #DC2626;
+  --status-red-bg: #FEE2E2;
+  --status-red-text: #B91C1C;
+
+  --status-blue: #2563EB;
+  --status-blue-bg: #DBEAFE;
+  --status-blue-text: #1D4ED8;
+
+  --bg-main: #F4F6F9;
+  --card-bg: #FFFFFF;
+  --border-subtle: #E2E8F0;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  --sidebar-width: 260px;
+  --header-height: 70px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.15);
+  }
+}
+
+.live-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--status-green);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+
+.live-indicator.critical {
+  background-color: var(--status-red);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
+}
+
+.live-indicator.warning {
+  background-color: var(--status-amber);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+}
+
+/* Button & interactive focus */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--saffron);
+  outline-offset: 2px;
+}
+
+/* Leaflet Container Adjustments */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.custom-map-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border: 2px solid #ffffff;
+}
+
+/* Responsive tables */
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Emergency Pulsing Beacon */
+@keyframes emergencyPing {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.45);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.95;
+  }
+}
+
+.emergency-marker-beacon {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emergency-marker-beacon::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 3px solid #DC2626;
+  background-color: rgba(220, 38, 38, 0.25);
+  animation: emergencyPing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
