@@ -169,3 +169,105 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   animation: emergencyPing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVENESS ENHANCEMENTS
+   ========================================================================== */
+
+/* Prevent horizontal page stretching on all viewports */
+html, body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+}
+
+@media (max-width: 768px) {
+  /* Main Container Compact Padding */
+  .main-content-layout {
+    padding: 14px 10px !important;
+  }
+
+  /* Header Mobile Adaptations */
+  header {
+    height: 58px !important;
+    padding: 0 12px !important;
+  }
+
+  .header-kumbh-subtitle {
+    display: none !important;
+  }
+
+  .header-datetime-badge {
+    display: none !important;
+  }
+
+  .header-user-text {
+    display: none !important;
+  }
+
+  .header-sync-time {
+    display: none !important;
+  }
+
+  .header-telemetry-pill {
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+
+  .header-telemetry-pill span:not(.live-indicator) {
+    font-size: 11px !important;
+  }
+
+  .header-lang-switcher {
+    padding: 2px !important;
+  }
+
+  .header-lang-switcher button {
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+  }
+
+  /* Compact Card Padding */
+  .card-container,
+  div[style*="padding: '24px'"],
+  div[style*="padding: 24px"] {
+    padding: 14px 12px !important;
+  }
+
+  /* Grid Layouts on Mobile - Convert Wide Columns to 100% or 2-col */
+  div[style*="repeat(auto-fit, minmax(210px"],
+  div[style*="repeat(auto-fit, minmax(200px"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  div[style*="repeat(auto-fit, minmax(220px"],
+  div[style*="repeat(auto-fit, minmax(250px"],
+  div[style*="repeat(auto-fit, minmax(280px"],
+  div[style*="repeat(auto-fit, minmax(310px"],
+  div[style*="repeat(auto-fit, minmax(320px"],
+  div[style*="repeat(auto-fit, minmax(360px"],
+  div[style*="repeat(auto-fit, minmax(420px"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  /* Header action bars stack cleanly */
+  div[style*="justify-content: 'space-between'"][style*="flex-wrap: 'wrap'"] {
+    gap: 10px !important;
+  }
+
+  /* Leaflet Mobile Height */
+  .leaflet-container {
+    min-height: 340px !important;
+    max-height: 60vh !important;
+  }
+
+  /* Modals Full Width with Safe Margin */
+  div[style*="maxWidth: '560px'"],
+  div[style*="maxWidth: '680px'"],
+  div[style*="maxWidth: '720px'"] {
+    max-width: 95vw !important;
+    margin: 8px auto !important;
+  }
+}
+

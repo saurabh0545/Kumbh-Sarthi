@@ -94,6 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
               </h2>
             </div>
           <p
+            className="header-kumbh-subtitle"
             style={{
               fontSize: '12.5px',
               color: '#64748B',
@@ -111,6 +112,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         {/* Language Switcher */}
         <div
+          className="header-lang-switcher"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -158,6 +160,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* LIVE telemetry badge */}
         <div
+          className="header-telemetry-pill"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -179,8 +182,8 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {t.common.live}
           </span>
-          <span style={{ color: '#86EFAC' }}>|</span>
-          <span style={{ fontSize: '11px', color: '#15803D', fontWeight: 500 }}>
+          <span className="header-sync-time" style={{ color: '#86EFAC' }}>|</span>
+          <span className="header-sync-time" style={{ fontSize: '11px', color: '#15803D', fontWeight: 500 }}>
             {t.header.liveSync}: {formatTimeOnly(lastUpdated)}
           </span>
         </div>

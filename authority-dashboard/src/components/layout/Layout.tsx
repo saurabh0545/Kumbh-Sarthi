@@ -30,6 +30,7 @@ export const Layout: React.FC = () => {
         />
 
         <main
+          className="main-content-layout"
           style={{
             flex: 1,
             padding: '24px',
