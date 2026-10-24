@@ -273,6 +273,42 @@ export const firebaseDashboardService = {
       return false;
     }
   },
+
+  // ─── REAL-TIME CROWD & YOLO TRACKING ───────────────────────────────────────
+
+  /**
+   * Subscribes to real-time crowd updates emitted from camera detectors into Firestore.
+   * Enables the deployed dashboard to receive instant live people counts globally
+   * without relying on local network tunnels.
+   */
+  subscribeToCrowdZones(callback: (zonesData: Record<string, { people: number; density: string }>) => void): Unsubscribe | null {
+    if (!isFirebaseConfigured()) return null;
+    try {
+      const col = collection(db, 'crowd_zones');
+      return onSnapshot(
+        col,
+        (snap) => {
+          const map: Record<string, { people: number; density: string }> = {};
+          snap.docs.forEach((docSnap) => {
+            const data = docSnap.data();
+            const zoneCode = data.zone || docSnap.id;
+            const p = typeof data.people === 'number' ? data.people : parseInt(String(data.people ?? '0'), 10);
+            const entry = {
+              people: isNaN(p) ? 0 : p,
+              density: String(data.density || 'LOW').toUpperCase(),
+            };
+            map[zoneCode] = entry;
+            map[docSnap.id] = entry;
+          });
+          callback(map);
+        },
+        (err) => console.warn('[Firebase] Crowd zones listener error:', err)
+      );
+    } catch (e) {
+      console.warn('[Firebase] Crowd zones subscription error:', e);
+      return null;
+    }
+  },
 };
 
 export default firebaseDashboardService;

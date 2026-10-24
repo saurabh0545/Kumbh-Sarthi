@@ -47,7 +47,8 @@ export const DashboardPage: React.FC = () => {
   // Gate 1 Live count + total
   const gate1Zone = zones.find((z) => z.gateCode === 'Gate-A');
   const gate1People = gate1Zone?.peopleCount || 0;
-  const totalPeopleMonitored = stats?.people_monitored || (24860 + gate1People * 12);
+  const basePeople = stats?.people_monitored || 24860;
+  const totalPeopleMonitored = basePeople + gate1People;
 
   // Compute aggregate crowd status
   const hasCritical = zones.some((z) => z.density === 'HIGH');

@@ -54,28 +54,26 @@ export const crowdService = {
     if (!backendData) return zonesList;
 
     return zonesList.map((z) => {
-      // Gate-A is Gate 1 (Live camera feed)
-      if (z.gateCode === 'Gate-A' && backendData['Gate-A']) {
-        const liveInfo = backendData['Gate-A'];
-        return {
-          ...z,
-          peopleCount: liveInfo.people,
-          density: (liveInfo.density as DensityLevel) || 'LOW',
-          status: 'ONLINE',
-          isLive: true,
-          dataSource: 'LIVE_YOLO_CAMERA',
-          lastUpdated: 'Live right now',
-        };
-      }
+      // Find matching live info across possible keys (e.g. 'Gate-A', 'gate-1', case-insensitive)
+      const matchKey = Object.keys(backendData).find(
+        (k) =>
+          k.toLowerCase() === z.gateCode.toLowerCase() ||
+          k.toLowerCase() === z.id.toLowerCase() ||
+          (z.gateCode === 'Gate-A' && (k.toLowerCase() === 'gate-a' || k.toLowerCase() === 'gate-1' || k.toLowerCase() === 'gate1'))
+      );
 
-      // Gate-B is Gate 2 (if present in backend)
-      if (backendData[z.gateCode]) {
-        const liveInfo = backendData[z.gateCode];
+      const liveInfo = matchKey ? backendData[matchKey] : null;
+
+      if (liveInfo) {
+        const isGate1 = z.gateCode === 'Gate-A';
         return {
           ...z,
           peopleCount: liveInfo.people,
-          density: (liveInfo.density as DensityLevel) || z.density,
-          lastUpdated: 'Just now',
+          density: (liveInfo.density as DensityLevel) || (isGate1 ? 'LOW' : z.density),
+          status: 'ONLINE',
+          isLive: isGate1 ? true : z.isLive,
+          dataSource: isGate1 ? 'LIVE_YOLO_CAMERA' : z.dataSource,
+          lastUpdated: 'Live right now',
         };
       }
 
