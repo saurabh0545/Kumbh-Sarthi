@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
-import { API_BASE_URL } from '../services/api';
+import { getApiBaseUrl, setApiBaseUrl, apiFetch } from '../services/api';
 import { useLanguage, LanguageCode } from '../context/LanguageContext';
-import { Check, Settings, Bell, Sliders, Video, Layers, Globe, Shield, Activity } from 'lucide-react';
+import { Check, Settings, Bell, Sliders, Video, Layers, Globe, Shield, Activity, Wifi, RefreshCw, ExternalLink } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -13,6 +13,47 @@ export const SettingsPage: React.FC = () => {
   const [pollingInterval, setPollingInterval] = useState(3);
   const [mapAutoRecenter, setMapAutoRecenter] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Dynamic Tunnel URL state
+  const [tunnelUrl, setTunnelUrl] = useState(getApiBaseUrl());
+  const [testStatus, setTestStatus] = useState<'IDLE' | 'TESTING' | 'SUCCESS' | 'ERROR'>('IDLE');
+  const [testMessage, setTestMessage] = useState<string>('');
+
+  const handleTestTunnel = async () => {
+    setTestStatus('TESTING');
+    setTestMessage('Testing connection to backend...');
+    try {
+      // Temporarily store to test
+      setApiBaseUrl(tunnelUrl);
+      const res = await apiFetch<any>('/api/authority/health', {}, 4000);
+      if (res.data && (res.data.status === 'ok' || res.data.status === 'degraded' || res.data.subsystems)) {
+        setTestStatus('SUCCESS');
+        setTestMessage('Connected successfully! FastAPI server and MySQL are responsive.');
+      } else if (res.isOffline) {
+        setTestStatus('ERROR');
+        setTestMessage(res.error || 'Server is not responding. If using localtunnel, ensure endpoint password is submitted.');
+      } else {
+        setTestStatus('SUCCESS');
+        setTestMessage('Server responded (HTTP 200 OK).');
+      }
+    } catch (e: any) {
+      setTestStatus('ERROR');
+      setTestMessage(e?.message || 'Connection failed.');
+    }
+  };
+
+  const handleSaveTunnel = () => {
+    setApiBaseUrl(tunnelUrl);
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2500);
+  };
+
+  const handleResetTunnel = () => {
+    setApiBaseUrl('');
+    setTunnelUrl(getApiBaseUrl());
+    setTestStatus('IDLE');
+    setTestMessage('');
+  };
 
   const handleSave = () => {
     setIsSaved(true);
@@ -170,32 +211,110 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 4. Backend Endpoints & API Topology */}
+      {/* 4. Backend Endpoints & Live Tunnel Management */}
       <Card
-        title="Backend API Configuration & System Status"
-        subtitle="Configured FastAPI upstream and database endpoints"
+        title="Backend API & Online Tunnel Configuration"
+        subtitle="Manage live connection to FastAPI backend server from deployed Vercel dashboard"
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-            <span style={{ color: '#64748B' }}>Configured FastAPI Base URL:</span>
-            <code style={{ color: '#123B5D', fontWeight: 700, backgroundColor: '#F1F5F9', padding: '2px 8px', borderRadius: '4px' }}>
-              {API_BASE_URL}
-            </code>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '13.5px', fontWeight: 600, color: '#0F172A', marginBottom: '6px' }}>
+              FastAPI Endpoint / HTTPS Tunnel URL
+            </label>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                value={tunnelUrl}
+                onChange={(e) => setTunnelUrl(e.target.value)}
+                placeholder="e.g. https://yellow-ducks-run.loca.lt or http://127.0.0.1:8001"
+                style={{
+                  flex: 1,
+                  minWidth: '260px',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #CBD5E1',
+                  fontSize: '13px',
+                  color: '#0F172A',
+                  outline: 'none',
+                }}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleTestTunnel}
+                disabled={testStatus === 'TESTING'}
+                icon={<RefreshCw size={13} className={testStatus === 'TESTING' ? 'spin' : ''} />}
+              >
+                {testStatus === 'TESTING' ? 'Testing...' : 'Test Connection'}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveTunnel}
+              >
+                Save Endpoint
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetTunnel}
+              >
+                Reset Default
+              </Button>
+            </div>
+
+            {testMessage && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  backgroundColor: testStatus === 'SUCCESS' ? '#F0FDF4' : '#FEF2F2',
+                  color: testStatus === 'SUCCESS' ? '#166534' : '#991B1B',
+                  border: `1px solid ${testStatus === 'SUCCESS' ? '#BBF7D0' : '#FECACA'}`,
+                }}
+              >
+                {testStatus === 'SUCCESS' ? '✓ ' : '⚠ '} {testMessage}
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-            <span style={{ color: '#64748B' }}>Environment Variable Source:</span>
-            <span style={{ color: '#0F172A', fontWeight: 600 }}>import.meta.env.VITE_API_BASE_URL</span>
+          <div
+            style={{
+              padding: '12px 14px',
+              backgroundColor: '#F8FAFC',
+              borderRadius: '8px',
+              border: '1px solid #E2E8F0',
+              fontSize: '12px',
+              color: '#475569',
+              lineHeight: 1.5,
+            }}
+          >
+            <strong>💡 Pro-Tip for Deployed Dashboard:</strong>
+            <br />
+            • Real-time crowd counts and pilgrim emergency SOS beacons stream instantly via <strong>Firebase Cloud Firestore</strong> without needing a tunnel.
+            <br />
+            • To use facial recognition AI search or MySQL queries on the deployed Vercel site, run <code>START_TUNNEL.bat</code> on your computer, paste your public <code>https://....loca.lt</code> URL above, and click <strong>Save Endpoint</strong>.
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-            <span style={{ color: '#64748B' }}>Database Engine:</span>
-            <span style={{ color: '#0F172A', fontWeight: 600 }}>MySQL (mysql+pymysql://root:saurabh@localhost:3306/kumbh_smart_assist)</span>
-          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '10px', borderTop: '1px solid #F1F5F9' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+              <span style={{ color: '#64748B' }}>Active Base URL:</span>
+              <code style={{ color: '#123B5D', fontWeight: 700, backgroundColor: '#F1F5F9', padding: '2px 8px', borderRadius: '4px' }}>
+                {getApiBaseUrl()}
+              </code>
+            </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-            <span style={{ color: '#64748B' }}>YOLO Vision Model:</span>
-            <span style={{ color: '#0F172A', fontWeight: 600 }}>yolo11n.pt / yolov8n.pt (Ultralytics Nano Model)</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+              <span style={{ color: '#64748B' }}>Database Engine:</span>
+              <span style={{ color: '#0F172A', fontWeight: 600 }}>MySQL (kumbh_smart_assist)</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+              <span style={{ color: '#64748B' }}>YOLO Vision Model:</span>
+              <span style={{ color: '#0F172A', fontWeight: 600 }}>yolo11n.pt / yolov8n.pt (Ultralytics Nano Model)</span>
+            </div>
           </div>
         </div>
       </Card>

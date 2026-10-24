@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ZoneCrowdData } from '../types';
 import { INITIAL_ZONES } from '../constants/zones';
 import { crowdService } from '../services/crowdService';
 import { firebaseDashboardService } from '../services/firebaseService';
+import { isFirebaseConfigured } from '../config/firebase';
 import { usePolling } from './usePolling';
 
 export function useCrowdData(pollIntervalMs = 3000) {
@@ -11,7 +12,7 @@ export function useCrowdData(pollIntervalMs = 3000) {
   const [error, setError] = useState<string | null>(null);
   const [isBackendOffline, setIsBackendOffline] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [hasLiveFirestore, setHasLiveFirestore] = useState<boolean>(false);
+  const hasLiveFirestoreRef = useRef<boolean>(false);
 
   // 1. Real-time Firebase Firestore Subscription
   // Streams live YOLO person count from detector (test_crowd.py) directly across web and cloud.
@@ -23,7 +24,7 @@ export function useCrowdData(pollIntervalMs = 3000) {
         setError(null);
         setLastUpdated(new Date());
         setIsLoading(false);
-        setHasLiveFirestore(true);
+        hasLiveFirestoreRef.current = true;
       }
     });
 
@@ -42,24 +43,24 @@ export function useCrowdData(pollIntervalMs = 3000) {
         setError(null);
         setLastUpdated(new Date());
       } else if (response.isOffline) {
-        if (!hasLiveFirestore) {
+        if (!hasLiveFirestoreRef.current && !isFirebaseConfigured()) {
           setIsBackendOffline(true);
           setError(response.error);
         }
       } else if (response.error) {
-        if (!hasLiveFirestore) {
+        if (!hasLiveFirestoreRef.current && !isFirebaseConfigured()) {
           setError(response.error);
         }
       }
     } catch (err: any) {
-      if (!hasLiveFirestore) {
+      if (!hasLiveFirestoreRef.current && !isFirebaseConfigured()) {
         setError(err?.message || 'Failed to fetch crowd data');
         setIsBackendOffline(true);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [hasLiveFirestore]);
+  }, []);
 
   usePolling(fetchData, pollIntervalMs);
 

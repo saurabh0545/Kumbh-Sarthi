@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
+import { isFirebaseConfigured } from '../config/firebase';
 import { Filter, RefreshCw, Users, ShieldAlert } from 'lucide-react';
 
 export const CrowdMonitoringPage: React.FC = () => {
@@ -53,7 +54,7 @@ export const CrowdMonitoringPage: React.FC = () => {
         </div>
       </div>
 
-      {isBackendOffline && (
+      {isBackendOffline && !zones.some((z) => z.isLive) && !isFirebaseConfigured() && (
         <ErrorState
           isBackendOffline={true}
           onRetry={refetch}

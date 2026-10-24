@@ -6,9 +6,27 @@
  * Defaults to http://localhost:8001
  */
 
-export const API_BASE_URL: string = (
-  import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'
-).replace(/\/$/, '');
+export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const custom = localStorage.getItem('ksa_api_base_url');
+    if (custom && custom.trim() !== '') {
+      return custom.trim().replace(/\/$/, '');
+    }
+  }
+  return (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001').replace(/\/$/, '');
+}
+
+export function setApiBaseUrl(url: string): void {
+  if (typeof window !== 'undefined') {
+    if (!url || url.trim() === '') {
+      localStorage.removeItem('ksa_api_base_url');
+    } else {
+      localStorage.setItem('ksa_api_base_url', url.trim().replace(/\/$/, ''));
+    }
+  }
+}
+
+export const API_BASE_URL: string = getApiBaseUrl();
 
 export interface ApiResponse<T> {
   data: T | null;
@@ -26,7 +44,22 @@ export async function apiFetch<T>(
   options: RequestInit = {},
   timeoutMs = 7000
 ): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const baseUrl = getApiBaseUrl();
+  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  const isLocalHttp = baseUrl.startsWith('http://localhost') || baseUrl.startsWith('http://127.0.0.1');
+
+  // Prevent mixed-content browser blocking on deployed HTTPS sites without custom tunnel
+  if (isHttps && isLocalHttp) {
+    return {
+      data: null,
+      error: 'Running on HTTPS. To connect to your local backend, please enter your HTTPS tunnel URL in Settings.',
+      isOffline: true,
+      isUnauthorized: false,
+      status: 0,
+    };
+  }
+
+  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   
   // Attach auth token if available
   const token = localStorage.getItem('ksa_authority_token');

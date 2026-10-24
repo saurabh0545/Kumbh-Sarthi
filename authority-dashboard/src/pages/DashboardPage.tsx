@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   MapPin,
   Users,
@@ -15,6 +15,8 @@ import {
 import { useCrowdData } from '../hooks/useCrowdData';
 import { useAlerts } from '../hooks/useAlerts';
 import { useHealth } from '../hooks/useHealth';
+import { firebaseDashboardService } from '../services/firebaseService';
+import { isFirebaseConfigured } from '../config/firebase';
 import { KpiCard } from '../components/dashboard/KpiCard';
 import { ZoneCard } from '../components/crowd/ZoneCard';
 import { AlertCard } from '../components/alerts/AlertCard';
@@ -37,10 +39,24 @@ export const DashboardPage: React.FC = () => {
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<AlertItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [liveSosCount, setLiveSosCount] = useState<number | null>(null);
+
+  // Subscribe to live SOS incidents from Firestore
+  useEffect(() => {
+    const unsub = firebaseDashboardService.subscribeToLiveSos((fbEmergencies) => {
+      if (fbEmergencies) {
+        const pending = fbEmergencies.filter((e) => e.status !== 'RESOLVED').length;
+        setLiveSosCount(pending);
+      }
+    });
+    return () => {
+      if (unsub) unsub();
+    };
+  }, []);
 
   // Compute live metrics or fallback to official baseline
   const activeAlertsCount = alerts.length || stats?.active_alerts || 4;
-  const emergencyRequestsCount = stats?.emergency_requests || 2;
+  const emergencyRequestsCount = liveSosCount !== null ? liveSosCount : (stats?.emergency_requests || 2);
   const camerasOnline = stats?.cameras_online || 18;
   const totalCameras = stats?.total_cameras || 20;
 
@@ -111,8 +127,8 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Backend Offline Banner (Trapped & Never blank) */}
-      {isBackendOffline && (
+      {/* Backend Offline Banner (Only show if cloud connection is also missing) */}
+      {isBackendOffline && !gate1Zone?.isLive && !isFirebaseConfigured() && (
         <ErrorState
           isBackendOffline={true}
           onRetry={handleRefreshAll}
