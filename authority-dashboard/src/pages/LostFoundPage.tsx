@@ -1204,6 +1204,10 @@ export const LostFoundPage: React.FC = () => {
                           const res = await faceService.detectFaces(matchTestImage, 'Gate-A');
                           if (res.data) {
                             setMatchResult(res.data);
+                          } else if (res.isOffline) {
+                            alert('Backend Server is offline (port 8001). Please launch START_BACKEND.bat to run AI Face Comparison.');
+                          } else if (res.error) {
+                            alert(`Face AI Error: ${res.error}`);
                           }
                         } catch (err: any) {
                           alert(`AI Inference error: ${err?.message || 'Server unavailable'}`);

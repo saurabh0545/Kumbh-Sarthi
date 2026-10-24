@@ -37,6 +37,9 @@ export async function apiFetch<T>(
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
+  // Bypass localtunnel & ngrok browser reminder pages so API requests are not intercepted as HTML
+  headers.set('bypass-tunnel-reminder', 'true');
+  headers.set('ngrok-skip-browser-warning', 'true');
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -79,7 +82,24 @@ export async function apiFetch<T>(
       };
     }
 
-    const data: T = await response.json();
+    let data: T;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const rawText = await response.text();
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        return {
+          data: null,
+          error: 'Backend tunnel returned non-JSON response. Please ensure localtunnel password is submitted.',
+          isOffline: true,
+          isUnauthorized: false,
+          status: response.status,
+        };
+      }
+    }
     return {
       data,
       error: null,

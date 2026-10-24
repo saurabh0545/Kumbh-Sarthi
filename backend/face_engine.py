@@ -41,7 +41,7 @@ class YuNetFaceDetector:
                     model=self.model_path,
                     config="",
                     input_size=(480, 270),
-                    score_threshold=0.45,
+                    score_threshold=0.35,
                     nms_threshold=0.3,
                     top_k=300
                 )
@@ -105,21 +105,15 @@ class CascadeFallbackDetector:
 
         raw_boxes = []
         if self.frontal_alt2 is not None:
-            faces = self.frontal_alt2.detectMultiScale(work_gray, scaleFactor=1.22, minNeighbors=3, minSize=(30, 30))
+            faces = self.frontal_alt2.detectMultiScale(work_gray, scaleFactor=1.12, minNeighbors=2, minSize=(20, 20))
             for (x, y, fw, fh) in faces:
                 raw_boxes.append((int(x / scale), int(y / scale), int(fw / scale), int(fh / scale)))
 
         if len(raw_boxes) == 0 and self.frontal_default is not None:
-            faces = self.frontal_default.detectMultiScale(work_gray, scaleFactor=1.25, minNeighbors=3, minSize=(30, 30))
+            faces = self.frontal_default.detectMultiScale(work_gray, scaleFactor=1.15, minNeighbors=2, minSize=(20, 20))
             for (x, y, fw, fh) in faces:
                 raw_boxes.append((int(x / scale), int(y / scale), int(fw / scale), int(fh / scale)))
 
-        if not raw_boxes:
-            return []
-
-        grouped, _ = cv2.groupRectangles(list(raw_boxes), groupThreshold=1, eps=0.35)
-        if len(grouped) > 0:
-            return [(int(b[0]), int(b[1]), int(b[2]), int(b[3])) for b in grouped]
         return list(raw_boxes)
 
 
@@ -587,7 +581,7 @@ class FaceEngine:
             detect_frame = cv2.resize(frame, (int(w_orig * scale), int(h_orig * scale)), interpolation=cv2.INTER_LINEAR)
 
         yunet_faces = None
-        if self.yunet.detector is not None and not force_cascade:
+        if self.yunet.detector is not None:
             yunet_faces = self.yunet.detect(detect_frame)
 
         if yunet_faces is not None and len(yunet_faces) > 0:
