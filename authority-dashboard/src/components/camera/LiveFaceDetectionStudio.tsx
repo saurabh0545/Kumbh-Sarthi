@@ -1283,7 +1283,7 @@ export const LiveFaceDetectionStudio: React.FC<LiveFaceDetectionStudioProps> = (
             style={{
               position: 'relative',
               width: '100%',
-              minHeight: '440px',
+              minHeight: '490px',
               backgroundColor: '#020617',
               borderRadius: '14px',
               overflow: 'hidden',
@@ -1316,14 +1316,14 @@ export const LiveFaceDetectionStudio: React.FC<LiveFaceDetectionStudioProps> = (
             {sourceMode === 'WEBCAM' && !isCameraAllowed && (
               <div
                 style={{
-                  padding: '40px 24px',
+                  padding: '24px 20px',
                   textAlign: 'center',
                   maxWidth: '480px',
                   color: '#F8FAFC',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '14px',
+                  gap: '12px',
                   zIndex: 15,
                 }}
               >

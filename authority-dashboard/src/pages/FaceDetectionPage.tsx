@@ -9,7 +9,7 @@ export const FaceDetectionPage: React.FC = () => {
           Live Optical Face Detection & Recognition AI
         </h2>
         <p style={{ fontSize: '14px', color: '#64748B', marginTop: '3px' }}>
-          Real-time Haar Cascade facial boundary detection and KNN identity verification across security gates.
+          Real-time optical AI face detection and biometric identity verification across security gates.
         </p>
       </div>
 
